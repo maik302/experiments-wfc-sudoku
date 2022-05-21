@@ -6,6 +6,9 @@ import org.openrndr.Program
 import org.openrndr.math.Vector2
 import kotlin.random.Random
 
+/**
+ * Based on https://youtu.be/2SuvO4Gi7uY 😊
+ */
 class SudokuWFC(
     private val program: Program,
     private val position: Vector2,
