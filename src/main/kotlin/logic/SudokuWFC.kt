@@ -2,7 +2,9 @@ package logic
 
 import data.*
 import ext.exceptions.ContradictionException
+import kotlinx.coroutines.delay
 import org.openrndr.Program
+import org.openrndr.launch
 import org.openrndr.math.Vector2
 import kotlin.random.Random
 
@@ -29,8 +31,8 @@ class SudokuWFC(
             while (unCollapsedNodes.isNotEmpty()) {
                 val randomUnCollapsedNode = unCollapsedNodes.popRandomUnCollapsedNode()
                 randomUnCollapsedNode?.collapse()
-                (graph as SudokuGraph).draw(program, position, nodeSize)
             }
+            (graph as SudokuGraph).draw(program, position, nodeSize)
         } catch (e: ContradictionException) {
             println("A contradiction was found!")
             run()
