@@ -2,12 +2,7 @@ package data
 
 import org.openrndr.Program
 import org.openrndr.color.ColorRGBa
-import org.openrndr.draw.Drawer
-import org.openrndr.draw.FontImageMap
 import org.openrndr.math.Vector2
-import org.openrndr.shape.Rectangle
-import org.openrndr.writer
-import java.util.SortedSet
 
 data class SudokuNode(
     val id: String,
@@ -20,14 +15,16 @@ data class SudokuNode(
     val entropy: Int
         get() = possibleValues.size
 
+    private val possibleValuesCount: Int = possibleValues.size
+
     @Suppress("UNCHECKED_CAST")
     override fun <T: Node> getNeighbours(graph: Graph<T>): List<T> {
         fun getColumnNeighbours(graph: Graph<SudokuNode>, columnPos: Int): List<Node> {
-            return graph.toMatrix().mapNotNull { row -> row[columnPos].takeIf { node -> node.id != this.id } }
+            return graph.toMatrix().mapNotNull { row -> row[columnPos].takeIf { it.id != this.id && it.entropy > 0 } }
         }
 
         fun getRowNeighbours(graph: Graph<SudokuNode>, rowPos: Int): List<Node> {
-            return graph.toMatrix()[rowPos].mapNotNull { node -> node.takeIf { it.id != this.id }}
+            return graph.toMatrix()[rowPos].mapNotNull { node -> node.takeIf { it.id != this.id && it.entropy > 0 } }
         }
 
         fun getSurroundingNeighbours(graph: Graph<SudokuNode>, rowPos: Int, colPos: Int): List<SudokuNode> {
@@ -38,7 +35,7 @@ data class SudokuNode(
                 val localColPos = colPos.div(subMatricesSize)
 
                 return subMatrices[localColPos.mod(subMatricesSize) * subMatricesSize + localRowPos.mod(subMatricesSize)]
-                    .mapNotNull { node -> node.takeIf { it.id != this.id } }
+                    .mapNotNull { node -> node.takeIf { it.id != this.id && it.entropy > 0} }
             } else {
                 emptyList()
             }
@@ -57,15 +54,49 @@ data class SudokuNode(
         } as List<T>
     }
 
-    fun draw(program: Program, position: Vector2, nodeSize: Double) {
+    fun draw(program: Program, worldPosition: Vector2, nodeSize: Double) {
+        val localPosition = Vector2(position.first.toDouble(), position.second.toDouble())
+        val relativePosition = Vector2(
+            x = worldPosition.x + (localPosition.x * nodeSize),
+            y = worldPosition.y + (localPosition.y * nodeSize)
+        )
+
+        if (entropy > 0) {
+            drawUnCollapsedNode(program, relativePosition, nodeSize)
+        } else {
+            drawCollapsedNode(program, relativePosition, nodeSize)
+        }
+    }
+
+    private fun drawCollapsedNode(program: Program, position: Vector2, nodeSize: Double) {
         program.extend {
-            drawer.fill = value?.color ?: ColorRGBa.GRAY
+            drawer.fill = value?.color
             drawer.stroke = null
             drawer.rectangle(
                 corner = position,
                 width = nodeSize,
                 height = nodeSize,
             )
+        }
+    }
+
+    private fun drawUnCollapsedNode(program: Program, position: Vector2, nodeSize: Double) {
+        val possibleNodesSize = nodeSize / possibleValuesCount
+        var yPosCounter = 0
+
+        program.extend {
+            possibleValues.forEachIndexed { index, value ->
+                val possibleNodePositionX = position.x + (index * possibleNodesSize)
+                val possibleNodePositionY = position.y + (if (possibleNodePositionX >= nodeSize) ++yPosCounter else yPosCounter)
+
+                drawer.fill = value.color
+                drawer.stroke = null
+                drawer.rectangle(
+                    corner = Vector2(possibleNodePositionX, possibleNodePositionY),
+                    width = possibleNodesSize,
+                    height = possibleNodesSize,
+                )
+            }
         }
     }
 }

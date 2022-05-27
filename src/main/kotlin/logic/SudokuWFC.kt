@@ -15,7 +15,7 @@ class SudokuWFC(
     private val width: Int,
     private val height: Int,
     private val subMatricesSize: Int,
-    private val nodeSize: Double = 20.0
+    private val nodeSize: Double = 27.0
 ) : WFCLogic {
 
     private lateinit var graph: Graph<SudokuNode>
@@ -63,14 +63,16 @@ class SudokuWFC(
             val neighbours = getNeighbours(graph)
             neighbours.onEach { neighbour ->
                 neighbour.possibleValues.remove(collapsedValue)
+                neighbour.draw(program, this@SudokuWFC.position, this@SudokuWFC.nodeSize)
             }
         }
 
         with(this as SudokuNode) {
             val collapsedValue = possibleValues.firstOrNull() ?: throw ContradictionException()
             value = collapsedValue
-            possibleValues = mutableSetOf()
+            possibleValues.clear()
             propagate(collapsedValue)
+            draw(program, this@SudokuWFC.position, this@SudokuWFC.nodeSize)
         }
     }
 
@@ -82,7 +84,6 @@ class SudokuWFC(
             try {
                 val randomUnCollapsedNode = unCollapsedNodes.popRandomUnCollapsedNode()
                 randomUnCollapsedNode?.collapse()
-                (graph as SudokuGraph).draw(program, position, nodeSize)
             } catch (e: ContradictionException) {
                 println("A contradiction was found!")
                 initGraphData()
