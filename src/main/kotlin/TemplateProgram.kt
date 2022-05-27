@@ -1,5 +1,6 @@
 import kotlinx.coroutines.delay
 import logic.SudokuWFC
+import org.openrndr.KEY_SPACEBAR
 import org.openrndr.PresentationMode
 import org.openrndr.application
 import org.openrndr.color.ColorRGBa
@@ -15,8 +16,11 @@ fun main() = application {
     }
 
     program {
+//        window.presentationMode = PresentationMode.MANUAL
+//        val frameRate = 1L
+
         val sudokuBoardSize = 9
-        val sudokuCellSize = 50.0
+        val sudokuCellSize = 54.0
 
         val sudokuWFC = SudokuWFC(
             program = this,
@@ -30,7 +34,16 @@ fun main() = application {
             nodeSize = sudokuCellSize,
         )
 
+//        keyboard.keyDown.listen {
+//            if (it.key == KEY_SPACEBAR) window.requestDraw()
+//        }
+
         extend {
+//            launch {
+//                delay(1000L / frameRate)
+//                window.requestDraw()
+//            }
+
             drawer.clear(ColorRGBa.BLACK)
             sudokuWFC.step()
         }

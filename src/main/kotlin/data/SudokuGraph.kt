@@ -1,7 +1,6 @@
 package data
 
 import org.openrndr.Program
-import org.openrndr.draw.FontImageMap
 import org.openrndr.math.Vector2
 
 class SudokuGraph(
@@ -64,8 +63,7 @@ class SudokuGraph(
     fun draw(program: Program, position: Vector2, nodeSize: Double) {
         for (row in 0 until height) {
             for (column  in 0 until width) {
-                val nodePosition = Vector2(position.x + (nodeSize * column), position.y +(nodeSize * row))
-                matrixRepresentation[row][column].draw(program, nodePosition, nodeSize)
+                matrixRepresentation[row][column].draw(program, position, nodeSize)
             }
         }
     }

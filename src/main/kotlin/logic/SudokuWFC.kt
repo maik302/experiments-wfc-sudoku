@@ -3,6 +3,7 @@ package logic
 import data.*
 import ext.exceptions.ContradictionException
 import org.openrndr.Program
+import org.openrndr.color.ColorRGBa
 import org.openrndr.math.Vector2
 import kotlin.random.Random
 
@@ -40,6 +41,7 @@ class SudokuWFC(
     private fun initGraphData() {
         graph = SudokuGraph(width, height, subMatricesSize)
         unCollapsedNodes = graph.toMatrix().flatten().toMutableList()
+        (graph as SudokuGraph).draw(program, position, nodeSize)
     }
 
     private fun MutableList<SudokuNode>.popRandomUnCollapsedNode(): SudokuNode? {
@@ -63,7 +65,6 @@ class SudokuWFC(
             val neighbours = getNeighbours(graph)
             neighbours.onEach { neighbour ->
                 neighbour.possibleValues.remove(collapsedValue)
-                neighbour.draw(program, this@SudokuWFC.position, this@SudokuWFC.nodeSize)
             }
         }
 
@@ -86,6 +87,7 @@ class SudokuWFC(
                 randomUnCollapsedNode?.collapse()
             } catch (e: ContradictionException) {
                 println("A contradiction was found!")
+                program.extend { drawer.clear(ColorRGBa.BLACK) }
                 initGraphData()
             }
         }

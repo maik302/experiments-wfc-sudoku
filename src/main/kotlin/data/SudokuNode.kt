@@ -1,7 +1,6 @@
 package data
 
 import org.openrndr.Program
-import org.openrndr.color.ColorRGBa
 import org.openrndr.math.Vector2
 
 data class SudokuNode(
@@ -11,6 +10,10 @@ data class SudokuNode(
     var possibleValues: MutableSet<SudokuValues>,
     var neighbours: List<SudokuNode>,
 ): Node {
+
+    companion object {
+        private const val POSSIBLE_NODE_SIZE_SCALE_FACTOR = 1.0
+    }
 
     val entropy: Int
         get() = possibleValues.size
@@ -81,13 +84,25 @@ data class SudokuNode(
     }
 
     private fun drawUnCollapsedNode(program: Program, position: Vector2, nodeSize: Double) {
-        val possibleNodesSize = nodeSize / possibleValuesCount
-        var yPosCounter = 0
+        val possibleNodesSize = (nodeSize / possibleValuesCount) * POSSIBLE_NODE_SIZE_SCALE_FACTOR
+        val lastAvailablePosition = position.x + nodeSize
 
         program.extend {
-            possibleValues.forEachIndexed { index, value ->
-                val possibleNodePositionX = position.x + (index * possibleNodesSize)
-                val possibleNodePositionY = position.y + (if (possibleNodePositionX >= nodeSize) ++yPosCounter else yPosCounter)
+            var xPosIndex = 0
+            var yPosIndex = 0
+            possibleValues.forEach { value ->
+                val possibleNodePositionX : Double
+                val possibleNodePositionY : Double
+                if (position.x + (xPosIndex * possibleNodesSize) >= lastAvailablePosition) {
+                    possibleNodePositionX = position.x
+                    possibleNodePositionY = position.y + (yPosIndex * possibleNodesSize)
+                    xPosIndex = 0
+                    yPosIndex += 1
+                } else {
+                    possibleNodePositionX = position.x + (xPosIndex * possibleNodesSize)
+                    possibleNodePositionY = position.y + (yPosIndex * possibleNodesSize)
+                    xPosIndex += 1
+                }
 
                 drawer.fill = value.color
                 drawer.stroke = null
