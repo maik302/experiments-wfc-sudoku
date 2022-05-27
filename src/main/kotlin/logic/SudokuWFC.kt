@@ -2,9 +2,7 @@ package logic
 
 import data.*
 import ext.exceptions.ContradictionException
-import kotlinx.coroutines.delay
 import org.openrndr.Program
-import org.openrndr.launch
 import org.openrndr.math.Vector2
 import kotlin.random.Random
 
@@ -21,12 +19,12 @@ class SudokuWFC(
 ) : WFCLogic {
 
     private lateinit var graph: Graph<SudokuNode>
+    private lateinit var unCollapsedNodes: MutableList<SudokuNode>
 
     override fun run() {
         //TODO: Add a system that handles contradiction states (when there's no possible value to choose from)
         try {
-            graph = SudokuGraph(width, height, subMatricesSize)
-            val unCollapsedNodes = graph.toMatrix().flatten().sortedBy { it.entropy }.toMutableList()
+            initGraphData()
 
             while (unCollapsedNodes.isNotEmpty()) {
                 val randomUnCollapsedNode = unCollapsedNodes.popRandomUnCollapsedNode()
@@ -37,6 +35,11 @@ class SudokuWFC(
             println("A contradiction was found!")
             run()
         }
+    }
+
+    private fun initGraphData() {
+        graph = SudokuGraph(width, height, subMatricesSize)
+        unCollapsedNodes = graph.toMatrix().flatten().toMutableList()
     }
 
     private fun MutableList<SudokuNode>.popRandomUnCollapsedNode(): SudokuNode? {
@@ -68,6 +71,22 @@ class SudokuWFC(
             value = collapsedValue
             possibleValues = mutableSetOf()
             propagate(collapsedValue)
+        }
+    }
+
+    fun step() {
+        if (!this::graph.isInitialized)
+            initGraphData()
+
+        if (unCollapsedNodes.isNotEmpty()) {
+            try {
+                val randomUnCollapsedNode = unCollapsedNodes.popRandomUnCollapsedNode()
+                randomUnCollapsedNode?.collapse()
+                (graph as SudokuGraph).draw(program, position, nodeSize)
+            } catch (e: ContradictionException) {
+                println("A contradiction was found!")
+                initGraphData()
+            }
         }
     }
 }

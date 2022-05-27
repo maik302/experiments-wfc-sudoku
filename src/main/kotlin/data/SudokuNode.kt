@@ -59,7 +59,7 @@ data class SudokuNode(
 
     fun draw(program: Program, position: Vector2, nodeSize: Double) {
         program.extend {
-            drawer.fill = value?.color ?: ColorRGBa.BLACK
+            drawer.fill = value?.color ?: ColorRGBa.GRAY
             drawer.stroke = null
             drawer.rectangle(
                 corner = position,
